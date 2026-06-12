@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tagrisso (Osimertinib) PBS Dashboard — by Indication</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1317; --bg2:#0a0f12; --panel:#151e24; --panel2:#1b262d;
+    --line:#26333c; --line2:#324049;
+    --text:#e8eff3; --muted:#8a99a4; --faint:#5d6e78;
+    --adj:#2dd4bf; --adj-dim:#15554f;
+    --l1:#f5b643; --l1-dim:#5a4419;
+    --l2:#fb7185; --l2-dim:#5a2330;
+    --gold:#e0b341; --good:#4ade80; --bad:#f87171;
+    --grid:rgba(255,255,255,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(1100px 600px at 85% -5%, rgba(45,212,191,.08), transparent 60%),
+      radial-gradient(900px 500px at 0% 100%, rgba(245,182,67,.05), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:'Archivo',sans-serif; line-height:1.46; font-size:16.5px; font-weight:500;
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:32px 28px 80px}
+  .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+  header{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:8px}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--adj);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--adj)}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,4.6vw,52px);line-height:1.02;letter-spacing:-.01em}
+  h1 em{font-style:italic;color:var(--gold)}
+  .sub{color:var(--muted);font-size:14.5px;margin-top:14px;max-width:780px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:18px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+  .meta b{color:var(--muted);font-weight:500}
+  nav{position:sticky;top:0;z-index:20;display:flex;gap:6px;flex-wrap:wrap;padding:14px 0;margin:8px 0 28px;
+    background:linear-gradient(var(--bg) 70%,transparent);backdrop-filter:blur(4px)}
+  nav button{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:9px 15px;border-radius:7px;cursor:pointer;transition:.18s}
+  nav button:hover{color:var(--text);border-color:var(--line2)}
+  nav button.active{color:var(--bg);background:var(--adj);border-color:var(--adj);font-weight:600}
+  section{display:none;animation:fade .4s ease}
+  section.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin:6px 0 22px;flex-wrap:wrap}
+  .sec-head h2{font-family:'Fraunces',serif;font-weight:600;font-size:27px;letter-spacing:-.01em}
+  .sec-head .tag{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.06em;padding-top:6px}
+  .grid{display:grid;gap:16px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g21{grid-template-columns:1.4fr 1fr}
+  @media(max-width:880px){.g4,.g3,.g2,.g21{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.g4,.g3,.g2,.g21{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel) 60%,var(--bg2));
+    border:1px solid var(--line);border-radius:14px;padding:20px;position:relative;overflow:hidden}
+  .card.pad{padding:22px 24px}
+  .card-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .kpi{display:flex;flex-direction:column;gap:5px}
+  .kpi .label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .kpi .val{font-family:'Fraunces',serif;font-size:38px;font-weight:600;line-height:1;letter-spacing:-.01em}
+  .kpi .val.sm{font-size:30px}
+  .kpi .unit{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--faint);margin-top:3px}
+  .kpi .dot{position:absolute;top:18px;right:18px;width:9px;height:9px;border-radius:50%}
+  .c-adj .val{color:var(--adj)} .c-adj .dot{background:var(--adj)}
+  .c-l1 .val{color:var(--l1)} .c-l1 .dot{background:var(--l1)}
+  .c-l2 .val{color:var(--l2)} .c-l2 .dot{background:var(--l2)}
+  .c-gold .val{color:var(--gold)} .c-gold .dot{background:var(--gold)}
+  .delta{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
+  .up{color:var(--good)} .down{color:var(--bad)} .flat{color:var(--muted)}
+  .growthrow{display:flex;gap:18px;margin-top:12px;flex-wrap:wrap}
+  .growthrow .gi{display:flex;flex-direction:column;gap:2px}
+  .growthrow .gi .gl{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  .chart-box{position:relative;height:300px}
+  .chart-box.tall{height:340px}
+  .chart-box.sm{height:230px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--line)}
+  tbody td{color:var(--text);font-weight:600}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line2)}
+  tbody tr:hover{background:rgba(255,255,255,.025)}
+  td.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+  tr.total td{font-weight:700;border-top:1px solid var(--line2);border-bottom:none}
+  .pill{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+  .pill.adj{background:var(--adj-dim);color:var(--adj)}
+  .pill.l1{background:var(--l1-dim);color:var(--l1)}
+  .pill.l2{background:var(--l2-dim);color:var(--l2)}
+  .swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+  .note{font-size:13px;color:var(--faint);margin-top:14px;line-height:1.5;border-top:1px dashed var(--line);padding-top:12px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+  .legend span{display:flex;align-items:center}
+  .full{grid-column:1/-1}
+  .footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.04em}
+  .sel{display:flex;gap:8px;flex-wrap:wrap}
+  .sel button{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.05em;color:var(--muted);
+    background:var(--panel);border:1px solid var(--line);padding:8px 16px;border-radius:8px;cursor:pointer;transition:.18s;font-weight:600}
+  .sel button:hover{color:var(--text);border-color:var(--line2)}
+  .sel button.active{color:var(--bg);background:var(--adj);border-color:var(--adj)}
+  .sel.strength button.active{background:var(--gold);border-color:var(--gold)}
+  .sel.state button{padding:7px 13px;font-size:11.5px}
+  .sel.state button.active{background:#60a5fa;border-color:#60a5fa}
+  .matrix tr.statehl td{background:rgba(96,165,250,.16)!important}
+  .matrix tr.statehl td:first-child{color:#60a5fa;font-weight:700}
+  tbody tr.rowhl td{background:rgba(96,165,250,.12)}
+  tbody tr.rowsel td:first-child{color:#60a5fa}
+  .ind-desc{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--faint);margin:2px 0 18px;letter-spacing:.03em}
+  .matrix{overflow-x:auto;margin:-4px -6px}
+  .matrix table{min-width:820px}
+  .matrix th,.matrix td{padding:7px 9px;font-size:12px}
+  .matrix td.heat{border-radius:3px;text-align:right;font-family:'IBM Plex Mono',monospace}
+  .matrix td.rowtot{font-weight:700}
+  .matrix .share{font-family:'IBM Plex Mono',monospace;color:var(--gold)}
+  .selrow{display:flex;gap:26px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+  .selrow .sl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+  .signal{border-left:3px solid var(--adj)}
+  .signal.s-l1{border-left-color:var(--l1)} .signal.s-l2{border-left-color:var(--l2)} .signal.s-gold{border-left-color:var(--gold)}
+  .signal h3{font-family:'Fraunces',serif;font-size:16.5px;font-weight:600;margin-bottom:8px;letter-spacing:-.01em}
+  .signal p{font-size:13px;color:var(--muted);line-height:1.55}
+  .sel.unit button.active{background:#a78bfa;border-color:#a78bfa;color:var(--bg)}
+  .sparkcell{width:150px;height:36px;margin-left:auto}
+  @media print{
+    nav{display:none}
+    body{background:#0d1317!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    section{display:block!important;break-before:page;animation:none}
+    section#overview{break-before:auto}
+    .card{break-inside:avoid}
+    .matrix{overflow-x:visible}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">PBS / RPBS Market Intelligence &nbsp;·&nbsp; Medicare Statistics Portal</div>
+    <h1>Tagrisso <em>Osimertinib</em> — by Indication</h1>
+    <p class="sub">EGFR-mutated NSCLC dispensing across three PBS indications — adjuvant (ADAURA), first-line metastatic, and second-line / T790M — split by 80&nbsp;mg and 40&nbsp;mg strength, by state and month. Figures are PBS + RPBS services combined. Manufacturer: AstraZeneca.</p>
+    <div class="meta">
+      <span><b>Period</b> &nbsp;May 2025 – Apr 2026 (12 months)</span>
+      <span><b>MAT</b> &nbsp;trailing-12 total</span>
+      <span><b>Source</b> &nbsp;Services Australia, Medicare Statistics (PBS Item Report)</span>
+      <span><b>Pulled</b> &nbsp;12 Jun 2026</span>
+      <span><b>Total Osimertinib MAT</b> &nbsp;<span id="hdrTot"></span> services</span>
+    </div>
+  </header>
+
+  <nav id="nav">
+    <button class="active" data-sec="overview">Overview</button>
+    <button data-sec="national">National by Indication</button>
+    <button data-sec="statemonth">State × Month</button>
+    <button data-sec="strength">By Strength (80 vs 40 mg)</button>
+  </nav>
+
+  <!-- OVERVIEW -->
+  <section id="overview" class="active">
+    <div class="sec-head"><h2>Executive summary</h2>
+      <span class="tag">MAT May 25 – Apr 26 · all indications · ←/→ to switch tabs</span></div>
+    <div class="grid g4" id="ovKpis" style="margin-bottom:16px"></div>
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="card-title">Indication scorecard <span class="mono" style="font-size:10px;color:var(--faint)">click a row to open in State × Month</span></div>
+      <table><thead><tr><th>Indication</th><th>12-mo trend</th><th>MAT</th><th>Share</th><th>Apr-26</th><th>MoM</th><th>rQTR</th><th>40 mg share</th></tr></thead>
+      <tbody id="ovScore"></tbody></table>
+    </div>
+    <div class="grid g2" style="margin-bottom:16px">
+      <div class="card pad">
+        <div class="card-title">Indication mix by month — share of services</div>
+        <div class="chart-box"><canvas id="ovMix"></canvas></div>
+      </div>
+      <div class="card pad">
+        <div class="card-title">40 mg (dose-reduced) share of monthly services</div>
+        <div class="chart-box"><canvas id="ovDr"></canvas></div>
+      </div>
+    </div>
+    <div class="grid g3" id="ovSignals"></div>
+  </section>
+
+  <!-- NATIONAL -->
+  <section id="national">
+    <div class="sec-head"><h2>National picture — each indication</h2>
+      <span class="tag">MAT · rQTR growth · monthly growth</span></div>
+    <div class="grid g3" id="indCards" style="margin-bottom:16px"></div>
+    <div class="grid g21" style="margin-bottom:16px">
+      <div class="card pad">
+        <div class="card-title">Monthly national services by indication
+          <span class="legend">
+            <span><i class="swatch" style="background:var(--adj)"></i>Adjuvant</span>
+            <span><i class="swatch" style="background:var(--l1)"></i>1st-line</span>
+            <span><i class="swatch" style="background:var(--l2)"></i>2nd-line</span></span></div>
+        <div class="chart-box tall"><canvas id="natStacked"></canvas></div>
+      </div>
+      <div class="card pad">
+        <div class="card-title">MAT mix by indication</div>
+        <div class="chart-box tall"><canvas id="indDonut"></canvas></div>
+      </div>
+    </div>
+    <div class="card pad">
+      <div class="card-title">MAT &amp; growth by indication and strength</div>
+      <table><thead><tr><th>Indication</th><th>PBS items (80 / 40 mg)</th><th>MAT</th><th>Share</th><th>Avg/mo</th><th>MoM</th><th>rQTR</th></tr></thead>
+      <tbody id="matTable"></tbody></table>
+      <div class="note">MAT = moving annual total (trailing 12 months). MoM = Apr-26 vs Mar-26. rQTR = rolling quarter Feb–Apr 26 vs Nov 25–Jan 26. Year-on-year MAT growth needs the prior 12 months (May 24–Apr 25) — available on request.</div>
+    </div>
+  </section>
+
+  <!-- STATE x MONTH -->
+  <section id="statemonth">
+    <div class="sec-head"><h2>State × Month — last 12 months</h2>
+      <span class="tag">choose indication &amp; strength</span></div>
+    <div class="selrow">
+      <div><div class="sl">Indication</div><div class="sel" id="smInd"></div></div>
+      <div><div class="sl">Strength</div><div class="sel strength" id="smStr">
+        <button class="active" data-str="combined">Combined</button>
+        <button data-str="s80">80 mg</button>
+        <button data-str="s40">40 mg</button></div></div>
+      <div><div class="sl">Units</div><div class="sel unit" id="smUnit">
+        <button class="active" data-u="abs">Services</button>
+        <button data-u="cap">Per 100k pop</button></div></div>
+    </div>
+    <div class="selrow"><div style="flex:1"><div class="sl">State</div><div class="sel state" id="smSt"></div></div></div>
+    <div class="ind-desc" id="smDesc"></div>
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card kpi"><span class="label">MAT — 12M services</span><span class="val" id="smMat">—</span><span class="unit" id="smMatU"></span></div>
+      <div class="card kpi"><span class="label">rQTR growth</span><span class="val sm" id="smRq">—</span><span class="unit">Feb–Apr vs Nov–Jan</span></div>
+      <div class="card kpi"><span class="label">MoM growth</span><span class="val sm" id="smMom">—</span><span class="unit">Apr-26 vs Mar-26</span></div>
+      <div class="card kpi"><span class="label">Avg / month</span><span class="val sm" id="smAvg">—</span><span class="unit">services / month</span></div>
+    </div>
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="card-title" id="smChartTitle">Monthly dispensings by state</div>
+      <div class="chart-box tall"><canvas id="smStacked"></canvas></div>
+    </div>
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="card-title">Per-state numbers &amp; growth <span class="mono" style="font-size:10px;color:var(--faint)">current indication &amp; strength · click a row's state above to focus</span></div>
+      <table><thead><tr><th>State</th><th>12M MAT</th><th>Share</th><th>Avg/mo</th><th>Latest (Apr-26)</th><th>MoM</th><th>rQTR</th></tr></thead>
+      <tbody id="smStateTable"></tbody></table>
+    </div>
+    <div class="card pad">
+      <div class="card-title">State × month matrix <span class="mono" style="font-size:10px;color:var(--faint)">cell shade ∝ services · selected state row highlighted</span></div>
+      <div class="matrix"><table id="smMatrix"></table></div>
+      <div class="note">Per-100k view uses ABS estimated resident population (Sep-2025): NSW 8.55M, VIC 7.01M, QLD 5.62M, SA 1.89M, WA 3.03M, TAS 0.58M, ACT 0.48M, NT 0.26M. It normalises raw volume so small-state penetration (TAS, NT, ACT) is comparable with NSW/VIC.</div>
+    </div>
+  </section>
+
+  <!-- BY STRENGTH -->
+  <section id="strength">
+    <div class="sec-head"><h2>80 mg vs 40 mg — by indication</h2>
+      <span class="tag">standard dose vs dose-reduced pair</span></div>
+    <div class="grid g3" id="strCards" style="margin-bottom:16px"></div>
+    <div class="grid g2">
+      <div class="card pad">
+        <div class="card-title">MAT by strength &amp; indication
+          <span class="legend"><span><i class="swatch" style="background:var(--gold)"></i>80 mg</span><span><i class="swatch" style="background:var(--faint)"></i>40 mg</span></span></div>
+        <div class="chart-box tall"><canvas id="strBar"></canvas></div>
+      </div>
+      <div class="card pad">
+        <div class="card-title">40 mg share of indication MAT</div>
+        <div class="chart-box tall"><canvas id="strShare"></canvas></div>
+      </div>
+    </div>
+    <div class="note" style="max-width:900px">The 80&nbsp;mg item is the standard daily dose for every osimertinib indication; the 40&nbsp;mg item is the dose-reduced pair used for toxicity management within the same listing — so a higher 40&nbsp;mg share indicates more dose reductions rather than a distinct patient group.</div>
+  </section>
+
+  <div class="footer">Tagrisso (Osimertinib) PBS Analysis · Source: Services Australia, Medicare Statistics (PBS Item Report), PBS + RPBS combined · MAT = trailing-12 total · rQTR = rolling quarter · MoM = month-on-month · Pulled 12 Jun 2026</div>
+</div>
+
+<script>
+const D={"months":["May 25","Jun 25","Jul 25","Aug 25","Sep 25","Oct 25","Nov 25","Dec 25","Jan 26","Feb 26","Mar 26","Apr 26"],"states":["NSW","VIC","QLD","SA","WA","TAS","ACT","NT"],"indications":[{"name":"Adjuvant (ADAURA)","key":"adj","color":"adj","desc":"Resected EGFR+ NSCLC, post-operative (Stage IB/II/IIIA) \u00b7 ADAURA","code80":"14168Q","code40":"14162J","combined":{"monthly":[240,218,221,257,246,243,241,314,242,309,268,315],"byState":[[106,58,43,12,18,1,2,0],[76,63,46,17,12,1,3,0],[84,65,39,18,12,1,2,0],[106,67,47,12,17,0,8,0],[99,72,47,13,12,0,2,1],[101,72,39,13,15,2,1,0],[83,64,42,18,29,2,3,0],[140,88,52,17,7,2,6,2],[68,77,49,14,29,1,3,1],[111,73,57,23,38,3,3,1],[106,64,56,25,10,3,3,1],[123,72,56,29,26,1,6,2]],"stateTot":[1203,835,573,211,225,17,42,8],"MAT":3114,"avg":259.5,"mom":0.17537313432835822,"rqtr":0.1191969887076536},"s80":{"monthly":[201,185,196,220,219,199,207,262,210,264,215,256],"byState":[[89,49,34,12,15,1,1,0],[65,56,37,15,9,1,2,0],[77,60,32,14,10,1,2,0],[91,58,38,10,15,0,8,0],[89,68,37,12,10,0,2,1],[87,53,31,12,13,2,1,0],[71,53,34,17,27,2,3,0],[113,78,41,13,7,2,6,2],[59,66,39,13,28,1,3,1],[95,64,45,16,37,3,3,1],[83,55,43,20,7,3,3,1],[99,60,41,23,24,1,6,2]],"stateTot":[1018,720,452,177,202,17,40,8],"MAT":2634,"avg":219.5,"mom":0.19069767441860463,"rqtr":0.08247422680412364},"s40":{"monthly":[39,33,25,37,27,44,34,52,32,45,53,59],"byState":[[17,9,9,0,3,0,1,0],[11,7,9,2,3,0,1,0],[7,5,7,4,2,0,0,0],[15,9,9,2,2,0,0,0],[10,4,10,1,2,0,0,0],[14,19,8,1,2,0,0,0],[12,11,8,1,2,0,0,0],[27,10,11,4,0,0,0,0],[9,11,10,1,1,0,0,0],[16,9,12,7,1,0,0,0],[23,9,13,5,3,0,0,0],[24,12,15,6,2,0,0,0]],"stateTot":[185,115,121,34,23,0,2,0],"MAT":480,"avg":40.0,"mom":0.1132075471698113,"rqtr":0.3305084745762712}},{"name":"1st-line metastatic","key":"l1","color":"l1","desc":"First-line EGFR+ metastatic NSCLC (Stage IIIB/IV) \u00b7 FLAURA","code80":"12232T","code40":"12233W","combined":{"monthly":[1825,1691,1624,1734,1530,1864,1657,1934,1608,1743,1633,1649],"byState":[[721,433,312,104,215,13,18,9],[643,420,314,100,154,24,28,8],[608,463,242,98,170,20,17,6],[699,409,269,77,231,21,20,8],[658,332,264,101,137,18,14,6],[743,485,278,105,204,20,25,4],[637,379,282,107,193,21,26,12],[836,461,299,89,179,26,31,13],[602,447,250,84,183,20,21,1],[711,385,304,89,185,23,26,20],[669,403,275,80,152,16,27,11],[667,365,297,86,182,25,21,6]],"stateTot":[8194,4982,3386,1120,2185,247,274,104],"MAT":20492,"avg":1707.6666666666667,"mom":0.009797917942437229,"rqtr":-0.033467974610501994},"s80":{"monthly":[1620,1469,1408,1511,1306,1650,1424,1682,1402,1532,1385,1400],"byState":[[633,396,271,91,194,13,16,6],[554,384,254,84,140,22,24,7],[526,413,192,87,152,20,14,4],[610,363,226,67,203,17,18,7],[551,300,211,85,127,15,13,4],[651,446,236,90,186,18,19,4],[541,333,229,90,175,21,25,10],[721,424,239,79,160,23,25,11],[517,406,216,68,159,18,17,1],[618,354,259,79,159,22,21,20],[564,363,221,66,131,15,19,6],[566,321,240,74,157,21,16,5]],"stateTot":[7052,4503,2794,960,1943,225,227,85],"MAT":17789,"avg":1482.4166666666667,"mom":0.010830324909747224,"rqtr":-0.042369121561668166},"s40":{"monthly":[205,222,216,223,224,214,233,252,206,211,248,249],"byState":[[88,37,41,13,21,0,2,3],[89,36,60,16,14,2,4,1],[82,50,50,11,18,0,3,2],[89,46,43,10,28,4,2,1],[107,32,53,16,10,3,1,2],[92,39,42,15,18,2,6,0],[96,46,53,17,18,0,1,2],[115,37,60,10,19,3,6,2],[85,41,34,16,24,2,4,0],[93,31,45,10,26,1,5,0],[105,40,54,14,21,1,8,5],[101,44,57,12,25,4,5,1]],"stateTot":[1142,479,592,160,242,22,47,19],"MAT":2703,"avg":225.25,"mom":0.0040322580645162365,"rqtr":0.02460202604920414}},{"name":"2nd-line / T790M","key":"l2","color":"l2","desc":"Second-line after prior EGFR-TKI / T790M (Stage IIIB/IV) \u00b7 AURA","code80":"11622Q","code40":"11620N","combined":{"monthly":[302,306,246,280,233,316,244,240,227,235,201,232],"byState":[[106,74,75,13,28,1,3,2],[90,101,61,27,17,2,3,5],[79,78,45,6,28,2,5,3],[91,73,56,16,35,3,3,3],[89,52,54,12,18,3,4,1],[101,84,61,24,35,2,7,2],[93,51,53,11,28,3,3,2],[85,53,62,15,18,1,2,4],[78,45,61,12,25,4,1,1],[85,52,46,20,22,3,1,6],[83,38,49,9,15,5,1,1],[90,38,59,17,23,2,1,2]],"stateTot":[1070,739,682,182,292,31,34,32],"MAT":3062,"avg":255.16666666666666,"mom":0.1542288557213931,"rqtr":-0.06047819971870605},"s80":{"monthly":[231,237,182,212,172,238,182,181,156,188,152,165],"byState":[[84,61,46,11,24,1,2,2],[71,92,34,20,13,2,0,5],[59,59,26,4,26,2,3,3],[65,60,36,13,31,3,1,3],[68,44,32,7,15,3,2,1],[75,70,40,15,30,2,5,1],[68,43,35,5,25,3,1,2],[68,45,35,10,18,1,1,3],[50,39,39,3,20,4,0,1],[70,43,33,15,20,2,0,5],[64,32,34,6,12,3,0,1],[67,30,33,14,20,0,0,1]],"stateTot":[809,618,423,123,254,26,15,28],"MAT":2296,"avg":191.33333333333334,"mom":0.08552631578947367,"rqtr":-0.026974951830443183},"s40":{"monthly":[71,69,64,68,61,78,62,59,71,47,49,67],"byState":[[22,13,29,2,4,0,1,0],[19,9,27,7,4,0,3,0],[20,19,19,2,2,0,2,0],[26,13,20,3,4,0,2,0],[21,8,22,5,3,0,2,0],[26,14,21,9,5,0,2,1],[25,8,18,6,3,0,2,0],[17,8,27,5,0,0,1,1],[28,6,22,9,5,0,1,0],[15,9,13,5,2,1,1,1],[19,6,15,3,3,2,1,0],[23,8,26,3,3,2,1,1]],"stateTot":[261,121,259,59,38,5,19,4],"MAT":766,"avg":63.833333333333336,"mom":0.36734693877551017,"rqtr":-0.15104166666666663}}],"total":{"monthly":[2367,2215,2091,2271,2009,2423,2142,2488,2077,2287,2102,2196],"MAT":26668,"avg":2222.3333333333335,"mom":0.044719314938154175,"rqtr":-0.018189950797674048,"stateTot":[10467,6556,4641,1513,2702,295,350,144]}};
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const pct=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%';
+const cls=x=>x>0.0005?'up':(x<-0.0005?'down':'flat');
+const COL={adj:'#2dd4bf',l1:'#f5b643',l2:'#fb7185',gold:'#e0b341',faint:'#5d6e78'};
+const GA={font:{family:"'IBM Plex Mono', monospace",size:11},color:'#8a99a4'};
+Chart.defaults.color='#8a99a4';
+Chart.defaults.font.family="'IBM Plex Mono', monospace";
+const gridc='rgba(255,255,255,.05)';
+
+document.getElementById('hdrTot').textContent=fmt(D.total.MAT);
+
+/* ABS estimated resident population, Sep-2025, thousands */
+const POP=[8545,7012,5618,1885,3032,575,481,256];
+const POPN=POP.reduce((a,b)=>a+b,0);
+
+/* nav: tabs + URL hash deep-links + arrow keys */
+const SECS=[...document.querySelectorAll('#nav button')].map(b=>b.dataset.sec);
+function go(sec,updateHash=true){
+  if(!SECS.includes(sec))return;
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.sec===sec));
+  document.querySelectorAll('section').forEach(s=>s.classList.toggle('active',s.id===sec));
+  if(updateHash&&'#'+sec!==location.hash)history.replaceState(null,'','#'+sec);
+}
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.sec));
+window.addEventListener('hashchange',()=>go(location.hash.slice(1),false));
+if(location.hash)go(location.hash.slice(1),false);
+document.addEventListener('keydown',e=>{
+  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+  if(/input|select|textarea/i.test(e.target.tagName))return;
+  const cur=SECS.indexOf(document.querySelector('#nav button.active').dataset.sec);
+  go(SECS[(cur+(e.key==='ArrowRight'?1:SECS.length-1))%SECS.length]);
+});
+
+/* ---- OVERVIEW ---- */
+const adjC=D.indications[0].combined,l1C=D.indications[1].combined,l2C=D.indications[2].combined;
+document.getElementById('ovKpis').innerHTML=`
+ <div class="card kpi c-gold"><span class="dot"></span><span class="label">Total MAT — all indications</span>
+   <span class="val">${fmt(D.total.MAT)}</span><span class="unit">${fmt(D.total.avg)}/mo avg · 6 PBS items</span></div>
+ <div class="card kpi"><span class="label">Latest month (Apr-26)</span>
+   <span class="val sm">${fmt(D.total.monthly[11])}</span>
+   <span class="unit">MoM <span class="delta ${cls(D.total.mom)}">${pct(D.total.mom)}</span></span></div>
+ <div class="card kpi"><span class="label">Total rQTR growth</span>
+   <span class="val sm ${cls(D.total.rqtr)}">${pct(D.total.rqtr)}</span>
+   <span class="unit">Feb–Apr 26 vs Nov 25–Jan 26</span></div>
+ <div class="card kpi c-adj"><span class="dot"></span><span class="label">Growth driver</span>
+   <span class="val sm">Adjuvant</span>
+   <span class="unit">rQTR <span class="delta ${cls(adjC.rqtr)}">${pct(adjC.rqtr)}</span> · ${(adjC.MAT/D.total.MAT*100).toFixed(1)}% of MAT</span></div>`;
+
+function spark(id,arr,color){
+  new Chart(document.getElementById(id),{type:'line',
+   data:{labels:arr.map((_,i)=>i),datasets:[{data:arr,borderColor:color,borderWidth:2,pointRadius:0,tension:.35,fill:false}]},
+   options:{responsive:true,maintainAspectRatio:false,animation:false,
+     scales:{x:{display:false},y:{display:false}},
+     plugins:{legend:{display:false},tooltip:{enabled:false}}}});
+}
+const ovS=document.getElementById('ovScore');
+D.indications.forEach((ind,i)=>{
+  const c=ind.combined;
+  ovS.insertAdjacentHTML('beforeend',`<tr data-ov="${i}" style="cursor:pointer">
+   <td><span class="pill ${ind.color}">${ind.name}</span></td>
+   <td><div class="sparkcell"><canvas id="spk${i}"></canvas></div></td>
+   <td class="num">${fmt(c.MAT)}</td>
+   <td class="num">${(c.MAT/D.total.MAT*100).toFixed(1)}%</td>
+   <td class="num">${fmt(c.monthly[11])}</td>
+   <td class="num ${cls(c.mom)}">${pct(c.mom)}</td>
+   <td class="num ${cls(c.rqtr)}">${pct(c.rqtr)}</td>
+   <td class="num">${(ind.s40.MAT/c.MAT*100).toFixed(1)}%</td></tr>`);
+});
+D.indications.forEach((ind,i)=>spark('spk'+i,ind.combined.monthly,COL[ind.color]));
+
+/* mix-by-month: 100% stacked share */
+new Chart(document.getElementById('ovMix'),{type:'bar',
+ data:{labels:D.months,datasets:D.indications.map(ind=>({
+   label:ind.name,backgroundColor:COL[ind.color],borderRadius:2,
+   data:ind.combined.monthly.map((v,m)=>v/D.total.monthly[m]*100)}))},
+ options:{responsive:true,maintainAspectRatio:false,
+   scales:{x:{stacked:true,grid:{display:false}},
+     y:{stacked:true,max:100,grid:{color:gridc},ticks:{callback:v=>v+'%'}}},
+   plugins:{legend:{position:'bottom',labels:{boxWidth:9,font:{size:10}}},
+     tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+'%'}}}}});
+
+/* 40 mg dose-reduction share trend */
+new Chart(document.getElementById('ovDr'),{type:'line',
+ data:{labels:D.months,datasets:D.indications.map(ind=>({
+   label:ind.name,borderColor:COL[ind.color],backgroundColor:COL[ind.color],
+   borderWidth:2,pointRadius:2,tension:.3,
+   data:ind.s40.monthly.map((v,m)=>v/ind.combined.monthly[m]*100)}))},
+ options:{responsive:true,maintainAspectRatio:false,
+   scales:{x:{grid:{display:false}},y:{grid:{color:gridc},ticks:{callback:v=>v+'%'}}},
+   plugins:{legend:{position:'bottom',labels:{boxWidth:9,font:{size:10}}},
+     tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+'%'}}}}});
+
+/* signals */
+const percap=D.total.stateTot.map((v,k)=>v*100/POP[k]);
+const sigs=[
+ {t:'Adjuvant is the growth engine',c:'adj',p:`ADAURA dispensing hit a record ${fmt(adjC.monthly[11])} services in Apr-26 — rQTR ${pct(adjC.rqtr)}, MoM ${pct(adjC.mom)}. Early-stage EGFR testing and resection pathways are still ramping.`},
+ {t:'1st-line: big but flat',c:'l1',p:`First-line holds ${(l1C.MAT/D.total.MAT*100).toFixed(1)}% of total MAT but rQTR is ${pct(l1C.rqtr)} — a mature volume anchor. Watch for share pressure as competing 1L EGFR regimens mature on the PBS.`},
+ {t:'2nd-line / T790M sunsetting',c:'l2',p:`rQTR ${pct(l2C.rqtr)}: the relapse pool shrinks as 1st-line osimertinib dominance removes sequential T790M use. Structural decline, not cyclical.`},
+ {t:'Dose reductions climbing in adjuvant',c:'gold',p:`Adjuvant 40 mg services are up ${pct(D.indications[0].s40.rqtr)} rQTR; 40 mg is now ${(D.indications[0].s40.MAT/adjC.MAT*100).toFixed(1)}% of the indication. 2nd-line remains the highest at ${(D.indications[2].s40.MAT/l2C.MAT*100).toFixed(1)}%.`},
+ {t:'Per-capita penetration gap',c:'adj',p:`NSW leads at ${percap[0].toFixed(0)} services/100k MAT vs TAS ${percap[5].toFixed(0)} and NT ${percap[7].toFixed(0)}. Use the per-100k toggle in State × Month to track catch-up.`}];
+document.getElementById('ovSignals').innerHTML=sigs.map(s=>
+ `<div class="card signal s-${s.c}"><div class="card-title">Signal</div><h3>${s.t}</h3><p>${s.p}</p></div>`).join('');
+document.querySelectorAll('#ovScore tr[data-ov]').forEach(r=>r.onclick=()=>{
+  smI=+r.dataset.ov;
+  document.querySelectorAll('#smInd button').forEach(x=>x.classList.toggle('active',+x.dataset.i===smI));
+  renderSM(); go('statemonth'); window.scrollTo({top:0,behavior:'smooth'});
+});
+
+/* ---- NATIONAL: indication cards ---- */
+const ic=document.getElementById('indCards');
+D.indications.forEach(ind=>{
+  const c=ind.combined;
+  ic.insertAdjacentHTML('beforeend',`
+   <div class="card kpi c-${ind.color}"><span class="dot"></span>
+     <span class="label">${ind.name}</span>
+     <span class="val">${fmt(c.MAT)}</span>
+     <span class="unit">MAT · ${fmt(c.avg)}/mo · items ${ind.code80} / ${ind.code40}</span>
+     <div class="growthrow">
+       <div class="gi"><span class="gl">MoM</span><span class="delta ${cls(c.mom)}">${pct(c.mom)}</span></div>
+       <div class="gi"><span class="gl">rQTR</span><span class="delta ${cls(c.rqtr)}">${pct(c.rqtr)}</span></div>
+       <div class="gi"><span class="gl">Share</span><span class="delta flat">${(c.MAT/D.total.MAT*100).toFixed(1)}%</span></div>
+     </div></div>`);
+});
+
+/* national stacked monthly */
+new Chart(document.getElementById('natStacked'),{type:'bar',
+ data:{labels:D.months,datasets:D.indications.map(ind=>({
+   label:ind.name,data:ind.combined.monthly,backgroundColor:COL[ind.color],borderRadius:3,
+ }))},
+ options:{responsive:true,maintainAspectRatio:false,
+   scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:gridc}}},
+   plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}}}});
+
+/* donut */
+new Chart(document.getElementById('indDonut'),{type:'doughnut',
+ data:{labels:D.indications.map(i=>i.name),
+   datasets:[{data:D.indications.map(i=>i.combined.MAT),
+     backgroundColor:D.indications.map(i=>COL[i.color]),borderColor:'#0d1317',borderWidth:3}]},
+ options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+   plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}},
+     tooltip:{callbacks:{label:c=>c.label+': '+fmt(c.parsed)+' ('+(c.parsed/D.total.MAT*100).toFixed(1)+'%)'}}}}});
+
+/* MAT table */
+const mt=document.getElementById('matTable');
+D.indications.forEach(ind=>{
+  const c=ind.combined;
+  mt.insertAdjacentHTML('beforeend',`<tr>
+    <td><span class="pill ${ind.color}">${ind.name}</span></td>
+    <td class="num">${ind.code80} / ${ind.code40}</td>
+    <td class="num">${fmt(c.MAT)}</td>
+    <td class="num">${(c.MAT/D.total.MAT*100).toFixed(1)}%</td>
+    <td class="num">${fmt(c.avg)}</td>
+    <td class="num ${cls(c.mom)}">${pct(c.mom)}</td>
+    <td class="num ${cls(c.rqtr)}">${pct(c.rqtr)}</td></tr>`);
+});
+mt.insertAdjacentHTML('beforeend',`<tr class="total">
+  <td>Total osimertinib</td><td class="num">all 6 items</td>
+  <td class="num">${fmt(D.total.MAT)}</td><td class="num">100%</td>
+  <td class="num">${fmt(D.total.avg)}</td>
+  <td class="num ${cls(D.total.mom)}">${pct(D.total.mom)}</td>
+  <td class="num ${cls(D.total.rqtr)}">${pct(D.total.rqtr)}</td></tr>`);
+
+/* ---- STATE x MONTH ---- */
+const smInd=document.getElementById('smInd');
+D.indications.forEach((ind,i)=>{
+  smInd.insertAdjacentHTML('beforeend',`<button data-i="${i}" class="${i===0?'active':''}">${ind.name}</button>`);
+});
+let smI=0, smS='combined', smSt='all', smU='abs';
+let smChart=null;
+function smSeries(){return D.indications[smI][smS];}
+function strLabel(){return smS==='combined'?'Combined (80+40 mg)':(smS==='s80'?'80 mg':'40 mg');}
+function mmetrics(arr){const MAT=arr.reduce((a,b)=>a+b,0);
+  const mom=arr[10]?arr[11]/arr[10]-1:0;
+  const pr=arr.slice(6,9).reduce((a,b)=>a+b,0), rc=arr.slice(9,12).reduce((a,b)=>a+b,0);
+  return {MAT,avg:MAT/12,mom,rqtr:pr?rc/pr-1:0,latest:arr[11]};}
+/* state selector buttons */
+const smStEl=document.getElementById('smSt');
+smStEl.insertAdjacentHTML('beforeend',`<button data-s="all" class="active">All states</button>`);
+D.states.forEach((st,si)=>smStEl.insertAdjacentHTML('beforeend',`<button data-s="${si}">${st}</button>`));
+
+function renderSM(){
+  const ind=D.indications[smI], ser=smSeries();
+  const rgb=ind.color==='adj'?[45,212,191]:ind.color==='l1'?[245,182,67]:[251,113,133];
+  const focused = smSt!=='all';
+  const si = focused ? +smSt : -1;
+  const cap = smU==='cap';
+  const scopePop = focused ? POP[si] : POPN;
+  const tv = v=> cap ? v*100/scopePop : v;            // scope (state or national) transform
+  const tn = v=> cap ? v*100/POPN : v;                // national transform
+  const fv = cap ? (n=>n.toFixed(1)) : fmt;
+  const stMonthlyRaw = focused ? ser.byState.map(m=>m[si]) : ser.monthly;
+  const kpRaw = focused ? mmetrics(stMonthlyRaw) : {MAT:ser.MAT,avg:ser.avg,mom:ser.mom,rqtr:ser.rqtr};
+  const kp = {mom:kpRaw.mom,rqtr:kpRaw.rqtr,MAT:tv(kpRaw.MAT),avg:tv(kpRaw.avg)};
+  const stMonthly = stMonthlyRaw.map(tv);
+  const scopeName = focused ? D.states[si] : 'all states';
+  const unitTag = cap ? ' · per 100k pop' : '';
+  document.getElementById('smDesc').textContent=ind.desc+'  ·  '+strLabel()
+    +'  ·  PBS items '+(smS==='s40'?ind.code40:(smS==='s80'?ind.code80:ind.code80+' + '+ind.code40))
+    +'  ·  '+scopeName.toUpperCase()+unitTag.replace(' · ','  ·  ');
+  document.getElementById('smMat').textContent=fv(kp.MAT);
+  document.getElementById('smMat').style.color=COL[ind.color];
+  document.getElementById('smMatU').textContent=(focused?scopeName+' · ':'')+fv(kp.avg)+'/mo avg'+unitTag;
+  const rq=document.getElementById('smRq'); rq.textContent=pct(kp.rqtr); rq.className='val sm '+cls(kp.rqtr);
+  const mm=document.getElementById('smMom'); mm.textContent=pct(kp.mom); mm.className='val sm '+cls(kp.mom);
+  document.getElementById('smAvg').textContent=fv(kp.avg);
+  document.getElementById('smChartTitle').textContent='Monthly dispensings — '+ind.name+' · '+strLabel()+' · '+scopeName+unitTag;
+  // chart: stacked-by-state when All; single series when a state is focused
+  const palette=['#2dd4bf','#f5b643','#fb7185','#60a5fa','#a78bfa','#34d399','#fbbf24','#94a3b8'];
+  let cfg;
+  if(focused){
+    cfg={type:'bar',data:{labels:D.months,datasets:[{label:D.states[si],data:stMonthly,
+        backgroundColor:`rgba(${rgb[0]},${rgb[1]},${rgb[2]},.85)`,borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{x:{grid:{display:false}},y:{grid:{color:gridc}}},
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>D.states[si]+': '+fv(c.parsed.y)}}}}};
+  }else if(cap){
+    // per-capita across all states: lines per state (stacking per-100k values is meaningless)
+    const ds=D.states.map((st,k)=>({label:st,data:ser.byState.map(m=>m[k]*100/POP[k]),
+      borderColor:palette[k],backgroundColor:palette[k],borderWidth:2,pointRadius:2,tension:.3}));
+    cfg={type:'line',data:{labels:D.months,datasets:ds},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{x:{grid:{display:false}},y:{grid:{color:gridc}}},
+        plugins:{legend:{position:'bottom',labels:{boxWidth:9,font:{size:10}}},
+          tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(1)+' /100k'}}}}};
+  }else{
+    const ds=D.states.map((st,k)=>({label:st,data:ser.byState.map(m=>m[k]),backgroundColor:palette[k],borderRadius:2}));
+    cfg={type:'bar',data:{labels:D.months,datasets:ds},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:gridc}}},
+        plugins:{legend:{position:'bottom',labels:{boxWidth:9,font:{size:10}}},
+          tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}}}};
+  }
+  if(smChart)smChart.destroy();
+  smChart=new Chart(document.getElementById('smStacked'),cfg);
+  // per-state growth table
+  const mx=ser.byState;
+  const colTot=D.states.map((_,k)=>mx.reduce((a,m)=>a+m[k],0));
+  let st='';
+  D.states.forEach((s,k)=>{
+    const a=mx.map(m=>m[k]); const me=mmetrics(a);
+    const tS=v=>cap? v*100/POP[k] : v;
+    st+=`<tr class="${focused&&k===si?'rowhl rowsel':''}" data-srow="${k}" style="cursor:pointer">
+      <td>${s}</td><td class="num">${fv(tS(me.MAT))}</td>
+      <td class="num share" style="color:var(--gold)">${(me.MAT/ser.MAT*100).toFixed(1)}%</td>
+      <td class="num">${fv(tS(me.avg))}</td><td class="num">${fv(tS(me.latest))}</td>
+      <td class="num ${cls(me.mom)}">${pct(me.mom)}</td>
+      <td class="num ${cls(me.rqtr)}">${pct(me.rqtr)}</td></tr>`;
+  });
+  st+=`<tr class="total"><td>National</td><td class="num">${fv(tn(ser.MAT))}</td><td class="num">100%</td>
+    <td class="num">${fv(tn(ser.avg))}</td><td class="num">${fv(tn(ser.monthly[11]))}</td>
+    <td class="num ${cls(ser.mom)}">${pct(ser.mom)}</td><td class="num ${cls(ser.rqtr)}">${pct(ser.rqtr)}</td></tr>`;
+  document.getElementById('smStateTable').innerHTML=st;
+  document.querySelectorAll('#smStateTable tr[data-srow]').forEach(r=>r.onclick=()=>{
+    smSt=r.dataset.srow; syncStateBtns(); renderSM();
+    document.getElementById('smStacked').scrollIntoView({behavior:'smooth',block:'center'});});
+  // matrix with highlighted state row (per-capita aware)
+  const mxT=mx.map(m=>m.map((v,k)=>cap? v*100/POP[k] : v));
+  const maxCell=Math.max(...mxT.flat(),cap?0.001:1);
+  let h='<thead><tr><th>State</th>'+D.months.map(m=>`<th>${m}</th>`).join('')+'<th>12M</th><th>Share</th></tr></thead><tbody>';
+  D.states.forEach((s,k)=>{
+    h+=`<tr class="${focused&&k===si?'statehl':''}"><td>${s}</td>`;
+    for(let m=0;m<12;m++){const v=mxT[m][k];const al=(v/maxCell*0.85).toFixed(3);
+      h+=`<td class="heat" style="background:rgba(${rgb[0]},${rgb[1]},${rgb[2]},${al})">${v?(cap?v.toFixed(1):v):'·'}</td>`;}
+    h+=`<td class="num rowtot">${fv(cap?colTot[k]*100/POP[k]:colTot[k])}</td><td class="share">${(colTot[k]/ser.MAT*100).toFixed(1)}%</td></tr>`;
+  });
+  h+=`<tr class="total"><td>National</td>`+ser.monthly.map(v=>`<td class="num">${fv(tn(v))}</td>`).join('')
+    +`<td class="num">${fv(tn(ser.MAT))}</td><td class="share">100%</td></tr></tbody>`;
+  document.getElementById('smMatrix').innerHTML=h;
+}
+function syncStateBtns(){document.querySelectorAll('#smSt button').forEach(x=>
+  x.classList.toggle('active', x.dataset.s===smSt));}
+smInd.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  smInd.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  smI=+b.dataset.i; renderSM();});
+document.querySelectorAll('#smStr button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#smStr button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  smS=b.dataset.str; renderSM();});
+smStEl.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  smSt=b.dataset.s; syncStateBtns(); renderSM();});
+document.querySelectorAll('#smUnit button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#smUnit button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  smU=b.dataset.u; renderSM();});
+renderSM();
+
+/* ---- BY STRENGTH ---- */
+const sc=document.getElementById('strCards');
+D.indications.forEach(ind=>{
+  const sh=ind.s40.MAT/ind.combined.MAT*100;
+  sc.insertAdjacentHTML('beforeend',`
+   <div class="card kpi c-${ind.color}"><span class="dot"></span>
+     <span class="label">${ind.name}</span>
+     <span class="val sm">${fmt(ind.s80.MAT)} <span style="font-size:15px;color:var(--faint)">/ ${fmt(ind.s40.MAT)}</span></span>
+     <span class="unit">80 mg / 40 mg MAT · 40 mg = ${sh.toFixed(1)}% of indication</span></div>`);
+});
+new Chart(document.getElementById('strBar'),{type:'bar',
+ data:{labels:D.indications.map(i=>i.name),
+   datasets:[
+     {label:'80 mg',data:D.indications.map(i=>i.s80.MAT),backgroundColor:COL.gold,borderRadius:3},
+     {label:'40 mg',data:D.indications.map(i=>i.s40.MAT),backgroundColor:COL.faint,borderRadius:3}]},
+ options:{responsive:true,maintainAspectRatio:false,
+   scales:{x:{grid:{display:false}},y:{grid:{color:gridc}}},
+   plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}}}});
+new Chart(document.getElementById('strShare'),{type:'bar',
+ data:{labels:D.indications.map(i=>i.name),
+   datasets:[{data:D.indications.map(i=>i.s40.MAT/i.combined.MAT*100),
+     backgroundColor:D.indications.map(i=>COL[i.color]),borderRadius:4}]},
+ options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+   scales:{x:{grid:{color:gridc},ticks:{callback:v=>v+'%'},max:25},y:{grid:{display:false}}},
+   plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'40 mg share: '+c.parsed.x.toFixed(1)+'%'}}}}});
+</script>
+</body>
+</html>
