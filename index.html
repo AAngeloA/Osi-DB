@@ -10,42 +10,45 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0d1317; --bg2:#0a0f12; --panel:#151e24; --panel2:#1b262d;
-    --line:#26333c; --line2:#324049;
-    --text:#e8eff3; --muted:#8a99a4; --faint:#5d6e78;
-    --adj:#2dd4bf; --adj-dim:#15554f;
-    --l1:#f5b643; --l1-dim:#5a4419;
-    --l2:#fb7185; --l2-dim:#5a2330;
-    --gold:#e0b341; --good:#4ade80; --bad:#f87171;
-    --grid:rgba(255,255,255,.05);
+    --bg:#f5f2ef; --bg2:#efeae6; --panel:#ffffff; --panel2:#faf8f6;
+    --line:#e3dcd6; --line2:#cfc5bd;
+    --text:#2d2a28; --muted:#6e6662; --faint:#9b938e;
+    --adj:#830051; --adj-dim:#f2dbe8;
+    --l1:#b07300; --l1-dim:#fdeecb;
+    --l2:#003865; --l2-dim:#d9e4ee;
+    --gold:#9c7a00; --good:#1b8a3f; --bad:#c62828;
+    --grid:rgba(0,0,0,.06);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
     background:
-      radial-gradient(1100px 600px at 85% -5%, rgba(45,212,191,.08), transparent 60%),
-      radial-gradient(900px 500px at 0% 100%, rgba(245,182,67,.05), transparent 55%),
+      radial-gradient(1100px 600px at 85% -5%, rgba(131,0,81,.06), transparent 60%),
+      radial-gradient(900px 500px at 0% 100%, rgba(240,171,0,.06), transparent 55%),
       var(--bg);
     color:var(--text); font-family:'Archivo',sans-serif; line-height:1.46; font-size:16.5px; font-weight:500;
     -webkit-font-smoothing:antialiased; min-height:100vh;
   }
   .wrap{max-width:1280px;margin:0 auto;padding:32px 28px 80px}
   .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
-  header{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:8px}
+  header{background:linear-gradient(135deg,#5f003b,#830051 55%,#98246a);border-radius:16px;padding:28px 30px 26px;margin-bottom:14px;position:relative;overflow:hidden}
+  .logos{position:absolute;top:24px;right:26px;display:flex;gap:14px;align-items:center;background:#fff;border-radius:10px;padding:9px 16px}
+  .logos img{height:24px;display:block}
+  @media(max-width:760px){.logos{position:static;margin-bottom:14px;width:max-content}}
   .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;
-    text-transform:uppercase;color:var(--adj);margin-bottom:14px;display:flex;align-items:center;gap:10px}
-  .eyebrow::before{content:"";width:26px;height:1px;background:var(--adj)}
-  h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,4.6vw,52px);line-height:1.02;letter-spacing:-.01em}
-  h1 em{font-style:italic;color:var(--gold)}
-  .sub{color:var(--muted);font-size:14.5px;margin-top:14px;max-width:780px}
-  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:18px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
-  .meta b{color:var(--muted);font-weight:500}
+    text-transform:uppercase;color:#F0AB00;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:1px;background:#F0AB00}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,4.6vw,52px);line-height:1.02;letter-spacing:-.01em;color:#fff}
+  h1 em{font-style:italic;color:#F0AB00}
+  .sub{color:rgba(255,255,255,.78);font-size:14.5px;margin-top:14px;max-width:780px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:18px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:rgba(255,255,255,.6);letter-spacing:.04em}
+  .meta b{color:rgba(255,255,255,.85);font-weight:500}
   nav{position:sticky;top:0;z-index:20;display:flex;gap:6px;flex-wrap:wrap;padding:14px 0;margin:8px 0 28px;
     background:linear-gradient(var(--bg) 70%,transparent);backdrop-filter:blur(4px)}
   nav button{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
     color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:9px 15px;border-radius:7px;cursor:pointer;transition:.18s}
   nav button:hover{color:var(--text);border-color:var(--line2)}
-  nav button.active{color:var(--bg);background:var(--adj);border-color:var(--adj);font-weight:600}
+  nav button.active{color:#2d2a28;background:#F0AB00;border-color:#F0AB00;font-weight:600}
   section{display:none;animation:fade .4s ease}
   section.active{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -87,7 +90,7 @@
   tbody td{color:var(--text);font-weight:600}
   th:first-child,td:first-child{text-align:left}
   thead th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line2)}
-  tbody tr:hover{background:rgba(255,255,255,.025)}
+  tbody tr:hover{background:rgba(0,0,0,.03)}
   td.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
   tr.total td{font-weight:700;border-top:1px solid var(--line2);border-bottom:none}
   .pill{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
@@ -104,14 +107,14 @@
   .sel button{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.05em;color:var(--muted);
     background:var(--panel);border:1px solid var(--line);padding:8px 16px;border-radius:8px;cursor:pointer;transition:.18s;font-weight:600}
   .sel button:hover{color:var(--text);border-color:var(--line2)}
-  .sel button.active{color:var(--bg);background:var(--adj);border-color:var(--adj)}
-  .sel.strength button.active{background:var(--gold);border-color:var(--gold)}
+  .sel button.active{color:#fff;background:var(--adj);border-color:var(--adj)}
+  .sel.strength button.active{background:#F0AB00;border-color:#F0AB00;color:#2d2a28}
   .sel.state button{padding:7px 13px;font-size:11.5px}
-  .sel.state button.active{background:#60a5fa;border-color:#60a5fa}
-  .matrix tr.statehl td{background:rgba(96,165,250,.16)!important}
-  .matrix tr.statehl td:first-child{color:#60a5fa;font-weight:700}
-  tbody tr.rowhl td{background:rgba(96,165,250,.12)}
-  tbody tr.rowsel td:first-child{color:#60a5fa}
+  .sel.state button.active{background:#003865;border-color:#003865}
+  .matrix tr.statehl td{background:rgba(0,56,101,.12)!important}
+  .matrix tr.statehl td:first-child{color:#003865;font-weight:700}
+  tbody tr.rowhl td{background:rgba(0,56,101,.08)}
+  tbody tr.rowsel td:first-child{color:#003865}
   .ind-desc{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--faint);margin:2px 0 18px;letter-spacing:.03em}
   .matrix{overflow-x:auto;margin:-4px -6px}
   .matrix table{min-width:820px}
@@ -129,7 +132,7 @@
   .sparkcell{width:150px;height:36px;margin-left:auto}
   @media print{
     nav{display:none}
-    body{background:#0d1317!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     section{display:block!important;break-before:page;animation:none}
     section#overview{break-before:auto}
     .card{break-inside:avoid}
@@ -140,6 +143,7 @@
 <body>
 <div class="wrap">
   <header>
+    <div class="logos"><img src="data:image/png;base64,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" alt="Tagrisso"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKgAAAApCAYAAAChp2LJAAAABHNCSVQICAgIfAhkiAAADLlJREFUeF7tXVtOHEkWvVmNpfkzrMDFCgavgGIFU7TskebLxQoAqd3SfDV8jWS3ZLwCF18jtVtDsYIpVuBiBS5WAHw3VMw5kRFZNyMjXwVtaUymVHJTGRmPEyfuO6sT6a4OgT8BgevfZD/pyYEY6eMzMc9kb2NXbtoOlbR9oGvfIVCFwPW/pZ+syRnabAXtZuuv5WVb9DqCtkWsa1+KAKTmVpLIf9FgPdbIJLK78UombSDsCNoGra7tyuTkgyDb6fPXMmoDY0fQNmh1baMI1EnO7KFE5uuvZLMNjB1B26DVtS0g0Jic7knYoa0416pxtz8dAhoB5xB9KbE5r9z3z/UzxsjLjb/LrCmSHUGbItW1yyFwfSbryZ11iEJvPbM1r3+Xk8TIfo6gIjsbr2XaFM6OoE2R6trlELj5LJScpeRkYxB0CIIy5JRdbT35jqAd8VojcPu7fIKqHoUPhl769WcZ4DtK2SVBRY4hQY+aDtoRtClSXTuLAEh3ANJ8qCOnbZsG7b92BO3I800QiKlsDlwV34QpYDqCfpPtedqDFMJJRi5ND86OkWuLjMF/38vVxj9krpECQZl/zzx5sLVT8U+bSo+/+pjHTqJBcv5SMtoU96e4x3DSZk9kgL8HJGpH0Mffnyff481v8MQTGQaq+tDaopCkuMfc+4sKoGaOsLdoM+3CTE+eUo8HQMwp8jYn1PcU5HzB9CU9dkjKEYj4pmb0GxSUTBYowQNRz+tm2nnxdQg94fuxTJF2iHwYCaTMgu80B+RORmh3UCNViawn62mZVO0I+oQJWLd0SEjGMGk72ivmrVspCtsyVutJr7+HeCkI/Le6sdD5HLHVsazJR13Y3BG0Frmn2SAMspeFknysEyQ8hBQ8CdFiP/huGwTcQFZpRDLXmQAg6hHy9R/doXiaG9CtuhqB288y9vZkXR0nSHiENvvmDoUgQZgpI3oqIVmsfIu2JGqVUyWwU8fPX8leJ0E7pkYR0ARtkj93qt5A1e/oDkNJDJLuQTqOEVcdgYRHVUR1oaxuhzoEigi42Ccl3jY+N1rtxvByqn4GMo/xWgcdJHsVCBpUMznpWxZPvSiVoO9lCNshcQ8m52/lPwX74qEbyzEwgTc/yWTvoX3VPf9Odk8w1l/r2un7RszhzzJpXLvYpu//l7aOYJR0JCrjmbQ1p1GSuuIQLyWjBF2TjfDtTkhfZqNi7zFVEXR3jIdsTAsbO/9JzjYfE9T38iMWbewBeCtnf7qp8V52CSpBbnGZnbcyiW5Gi06+i6Y5ovI14nsQNbA3LSFT1f3Jh54CCXoFE6DvAamqKWUbEj1KjA8yXL+TJM2xugvS5OVjSpNvTdB3MkRsrpeBU84awwJbnubbOzFb/5TJ/Ltg2CMtQhMVJDxBWOg4lIi+UBn3IYSsgPP/Zi/N2X5AZPvefPy6AJmpYYtXupnJJ24SPtwgqsZTSLrRI61TvjVBm8wbc4LtZGwpWSJmF6ZHq1dkm4zxvbRRTg7z6ydQ+8d6bV6S6u/4uoc8k3nvXj7E6kmztixEeSYDEj9KUKhDXy19iq2CDWY37QYE3SgD+F8y7D9D8YCRhFXWttKapgEk72QNhQWHMrG/KpGSnyGGZIA/+cFljly/F1Spqf0r21j4FaT2mBL9D2tu9PD94pzfsf2vMhwupPcGZNJ5YhQqmAna2Dha08vZ3AxMsz7s489ylhn6vg+2MdLbV+PdYL3Te1kcaklLLLBmax7d4WD/Bdhx/jj02TyBwRhmE/AtXgpLtqc0t+MksvhYZnJ4jDDGCO19pXvlc9gLrKXYvgf8yuYWzjYjKkChxISDlK2JjhMIeYBgfX9BaYu0KGKh9GWi781b7BME6pWTVSBoCm7yNd0o8xKkm3t1XyZV9ObiMUpdOhZ9fHysC0CZHZoI1bZgcgxn7EhJ1ws8hwLZhMRxi8raZNIO967wmbs23hGarWFMfzCqiOpMGq6ZY1ziIBZeZcBhgF1lN5OXHy9bI+a55w+OxoOY4TB+wOaxbXgV5qi0F9t6LDkvuy70B2LnnUo3f2Lk533hBip97p38CMM/O9iXaE8Bkq0nNk4VhkqiXoeOlCvVo5AbVPRxC3KOwh92KBDUebu0w66wURZUkIqqjukqePNnWlrZ8XDfe2E5M8BtFE9MZiIsbUHDyTqnJXHqYTFNJWjmQF1iglQhnIclBYgwvkdFDA4RDwGyEsmhjjCg/y0Qesp7ZZIwBAnz5+ZyPlG7U80HQWYz0qpfmwU40tapCg4sNx6CA2k8MTPYwSCNJUa2dh5KzokaAYfAvcOTHkQ/V9cn96GwZqXxLmE3D7U114T3h0iNgwNghloq6/armDmuuITz/oLA/R5sVEjpZdgpxJ5/4/75Yg3kjPx2U4GgS7ItAdKThlTa0FLJEYImAeaSv8fveJ//hg5WlQ2q75E0IYh+kQQ6Zif6Q9Yk+qDHim2I1ijhYViSJ4t42AMcahQQY1Bcf3boM9PpV9n96g5j1N73h0GvSx8QkHMz5tRx/3io9T1KXXw3iOEHDvDwr+x32IKRP/DCXA/1ouVOEOG7gtQ8qPo5nBxB9QnWi9VevVZlHCFvuy3VXOyk6O+aEnSVU6zXURXCamZ3Lh2nsr5C3GB/9kFmZ8/GMdFj82DDVsVBzp6JRkz0PnhcFKmj2q1uH2L3lRaFT3A2aNOHq2b6pU5q0taUH2Cz1vziXY6gSpUXJqbuzTDp7FfKHGjzVPWkNhLUFBwjc1Fl/zUl6CoxUr35Zc87yeh/dCBqd6YHMJN0pZsVEgdSEGo9JZtX++Em56Ws2UkdwPq4MOZDrOlkHq/J4mQZDsybBG1IVZxbZmK1IqizNRn9Kdjwaowr4DNqWrScETQf+zQnJJmeOIgHAJMjfheqkrx9tHzKe/GY0OmKKr4SIGc+bCvvuHDaywiq7LbKeGf7AD/t6cW0ThpWEbQhuVDsa2DfVx+Eqr4gKYEd7WEbeaFDFRKrMUHdC3UkZ7mHjmgO7rMGdD/0+MvmmRE0b+zXQVQ8rS7MMXRkIVFyZVWhV9hQgkYBcoeJzoQmpPN4E4aZ1rEw+4sWMYIqFVYb71QEhZOWjOuQScnJa2UJ2mgcI4s5BUDdOLH58mD34IwFkQU6obA9bViRRKVT3IigsZhnblzGNSk13U/eKEeKNndp6tSi6DtStowPocTW1seXL5o4H6kK7eF0GoSDfLhpSeyHEFRJPxuzxBhjLaGrVLy2F5t4+YqgjTaLoIXSMRa7LJOgTbD1G5PvIx/NKDtIgWmDQ50c3clioh0oHear80HryAmMo29xuuISHvhtltYtfgBRy7x47YlXOSWBQ9Qo9emkHb1CxkSzTV6VoE02RUcdtARtanfqzfXzXJ048Xx+SFD0v+5DTLFoSBnhcIDAAXs1yvRpTVmWvkafJM6bOgla88t2V4jcD2M/FOa8/DSu20P4LfX0o7/AbCWomlAW+6wAZO7I1giQoP8HEzQfyC7b/Cyuman4IJjdOM/eRBqGWDV5JmwDz3/mHZ4wUlK2FwG2NyD2Zl1iQu111PwJkhaVWiN8JSSYJ4USY8D+GlStA/dyhSS+rSeoDbQ3UXnKfrPxu9SeodGb9GPlaWm8LflCe0f3/0gSNBfMTjdsiIxFQrPCXl4a6UxQ29CVigtGs1McEylQSIE0DbsKQWkGaGx95k1vqjuckGzL8sdA+1VlmZjNw6vCPRAlrTcIIwwR2z4XsQkJFv5qSA0BS2+DhKeLO4ScItVRSZBpqFXbGhCedKRCJzj5U4yepeJARBjwCbM+zOogO2JF+CXIMvAnPK9qkgnyzGgvl+kGV4c5As+aRj0jDnCMsrEu8LfL1PjsTqYKW+CY2sw6O0VVv0i95xkOJg/dCB1i0+XWB+RXJagjiMcS0icN2VH909v2qdZQwuazP8v5MfLCXLvD32oN1gVgv+aYr3Vi0/4XyHBxLbZWgF54hl9VmO8hBMV458jPTxESmsSI6TcpUWm+0lhguKPLWFya+nTAYtNK34k+BTkPtPpx9iDVgPL2i7n4mJFeMR5ibOYoJXlKSC8tla3WmqB8wJGUa3TEz3Vjawa8o7YqQdljDZZXWM9BLPvjnD/Oj7Z+eJ0D/5Eq2KHgiK0F3rZhMQ9ImkYhquzhsh8Si4zP95CmICT3u90PN7jKIVbdzJvWPrpqnT4noj3UFFz8nx6suWBVHlSizMrsIt/eL8j35ftnwLuqBjUljTVN+pRsei7huvzfLdgZxcRVGm1hfRh7MQPo83COel1l669r41ORHMeHlJoUT7vYMOZm8Z9W7SsxScmIlmoddXPTGNqKJeTRoU0wT0p6uXFEpP05w71ZXbaoak/+B1119E3Z9DN+AAAAAElFTkSuQmCC" alt="AstraZeneca"></div>
     <div class="eyebrow">PBS / RPBS Market Intelligence &nbsp;·&nbsp; Medicare Statistics Portal</div>
     <h1>Tagrisso <em>Osimertinib</em> — by Indication</h1>
     <p class="sub">EGFR-mutated NSCLC dispensing across three PBS indications — adjuvant (ADAURA), first-line metastatic, and second-line / T790M — split by 80&nbsp;mg and 40&nbsp;mg strength, by state and month. Figures are PBS + RPBS services combined. Manufacturer: AstraZeneca.</p>
@@ -274,11 +278,11 @@ const D={"months":["May 25","Jun 25","Jul 25","Aug 25","Sep 25","Oct 25","Nov 25
 const fmt=n=>Math.round(n).toLocaleString('en-US');
 const pct=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%';
 const cls=x=>x>0.0005?'up':(x<-0.0005?'down':'flat');
-const COL={adj:'#2dd4bf',l1:'#f5b643',l2:'#fb7185',gold:'#e0b341',faint:'#5d6e78'};
-const GA={font:{family:"'IBM Plex Mono', monospace",size:11},color:'#8a99a4'};
-Chart.defaults.color='#8a99a4';
+const COL={adj:'#830051',l1:'#F0AB00',l2:'#003865',gold:'#F0AB00',faint:'#9b938e'};
+const GA={font:{family:"'IBM Plex Mono', monospace",size:11},color:'#6e6662'};
+Chart.defaults.color='#6e6662';
 Chart.defaults.font.family="'IBM Plex Mono', monospace";
-const gridc='rgba(255,255,255,.05)';
+const gridc='rgba(0,0,0,.06)';
 
 document.getElementById('hdrTot').textContent=fmt(D.total.MAT);
 
@@ -408,7 +412,7 @@ new Chart(document.getElementById('natStacked'),{type:'bar',
 new Chart(document.getElementById('indDonut'),{type:'doughnut',
  data:{labels:D.indications.map(i=>i.name),
    datasets:[{data:D.indications.map(i=>i.combined.MAT),
-     backgroundColor:D.indications.map(i=>COL[i.color]),borderColor:'#0d1317',borderWidth:3}]},
+     backgroundColor:D.indications.map(i=>COL[i.color]),borderColor:'#ffffff',borderWidth:3}]},
  options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
    plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}},
      tooltip:{callbacks:{label:c=>c.label+': '+fmt(c.parsed)+' ('+(c.parsed/D.total.MAT*100).toFixed(1)+'%)'}}}}});
@@ -453,7 +457,7 @@ D.states.forEach((st,si)=>smStEl.insertAdjacentHTML('beforeend',`<button data-s=
 
 function renderSM(){
   const ind=D.indications[smI], ser=smSeries();
-  const rgb=ind.color==='adj'?[45,212,191]:ind.color==='l1'?[245,182,67]:[251,113,133];
+  const rgb=ind.color==='adj'?[131,0,81]:ind.color==='l1'?[240,171,0]:[0,56,101];
   const focused = smSt!=='all';
   const si = focused ? +smSt : -1;
   const cap = smU==='cap';
@@ -478,7 +482,7 @@ function renderSM(){
   document.getElementById('smAvg').textContent=fv(kp.avg);
   document.getElementById('smChartTitle').textContent='Monthly dispensings — '+ind.name+' · '+strLabel()+' · '+scopeName+unitTag;
   // chart: stacked-by-state when All; single series when a state is focused
-  const palette=['#2dd4bf','#f5b643','#fb7185','#60a5fa','#a78bfa','#34d399','#fbbf24','#94a3b8'];
+  const palette=['#003865','#D0006F','#68D2DF','#C4D600','#3C1053','#830051','#F0AB00','#7A99AC'];
   let cfg;
   if(focused){
     cfg={type:'bar',data:{labels:D.months,datasets:[{label:D.states[si],data:stMonthly,
