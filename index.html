@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tagrisso (Osimertinib) PBS Dashboard — by Indication</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fbfaf8; --bg2:#ffffff; --panel:#ffffff; --panel2:#f6f3ef;
+    --line:#e8e2dc; --line2:#d7cfc6;
+    --text:#2d2a32; --muted:#7d7684; --faint:#9a93a1;
+    --adj:#830051; --adj-dim:#f2dfeb;
+    --l1:#b07b00; --l1-dim:#faeed2;
+    --l2:#17758a; --l2-dim:#dbeef2;
+    --gold:#b8860b; --good:#1a7f37; --bad:#c02e3d;
+    --grid:rgba(45,42,50,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(1100px 600px at 85% -5%, rgba(131,0,81,.04), transparent 60%),
+      radial-gradient(900px 500px at 0% 100%, rgba(240,171,0,.04), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:'Inter',sans-serif; line-height:1.46; font-size:16px; font-weight:500;
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:32px 28px 80px}
+  .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+  header{background:linear-gradient(120deg,#830051,#5c0e3f 72%);border-radius:16px;
+    padding:28px 30px 26px;margin-bottom:8px}
+  .head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap}
+  .brand-logo{background:#fff;border-radius:10px;padding:9px 15px;flex:none;
+    box-shadow:0 2px 10px rgba(0,0,0,.18);align-self:flex-start;margin-top:4px}
+  .brand-logo img{height:44px;display:block}
+  @media(max-width:560px){.brand-logo img{height:34px}}
+  .footer-logo{height:26px;opacity:.85;vertical-align:middle;margin-right:14px}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;
+    text-transform:uppercase;color:#f0ab00;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:1px;background:#f0ab00}
+  h1{font-family:'Inter',sans-serif;font-weight:800;font-size:clamp(28px,4.2vw,46px);line-height:1.04;letter-spacing:-.02em;color:#fff}
+  h1 em{font-style:normal;color:#f0ab00}
+  .sub{color:#e7c3d8;font-size:14.5px;margin-top:14px;max-width:780px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:18px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:rgba(255,255,255,.55);letter-spacing:.04em}
+  .meta b{color:#e7c3d8;font-weight:500}
+  nav{position:sticky;top:0;z-index:20;display:flex;gap:0;flex-wrap:wrap;padding:12px 0 0;margin:10px 0 28px;
+    border-bottom:2px solid var(--line);
+    background:linear-gradient(var(--bg) 82%,rgba(251,250,248,.65));backdrop-filter:blur(4px)}
+  nav button{font-family:'Inter',sans-serif;font-size:12px;letter-spacing:.05em;font-weight:600;text-transform:uppercase;
+    color:var(--muted);background:transparent;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;
+    padding:10px 15px;cursor:pointer;transition:.18s}
+  nav button:hover{color:var(--text)}
+  nav button.active{color:var(--adj);border-bottom-color:var(--adj);font-weight:700}
+  section{display:none;animation:fade .4s ease}
+  section.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin:6px 0 22px;flex-wrap:wrap}
+  .sec-head h2{font-family:'Inter',sans-serif;font-weight:800;font-size:25px;letter-spacing:-.02em;color:var(--adj)}
+  .sec-head .tag{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.06em;padding-top:6px}
+  .grid{display:grid;gap:16px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g21{grid-template-columns:1.4fr 1fr}
+  @media(max-width:880px){.g4,.g3,.g2,.g21{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.g4,.g3,.g2,.g21{grid-template-columns:1fr}}
+  .card{background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;padding:20px;position:relative;overflow:hidden;
+    box-shadow:0 1px 3px rgba(45,42,50,.06)}
+  .card.pad{padding:22px 24px}
+  .card-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .kpi{display:flex;flex-direction:column;gap:5px}
+  .kpi .label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .kpi .val{font-family:'Inter',sans-serif;font-size:34px;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .kpi .val.sm{font-size:30px}
+  .kpi .unit{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--faint);margin-top:3px}
+  .kpi .dot{position:absolute;top:18px;right:18px;width:9px;height:9px;border-radius:50%}
+  .c-adj .val{color:var(--adj)} .c-adj .dot{background:var(--adj)}
+  .c-l1 .val{color:var(--l1)} .c-l1 .dot{background:var(--l1)}
+  .c-l2 .val{color:var(--l2)} .c-l2 .dot{background:var(--l2)}
+  .c-gold .val{color:var(--gold)} .c-gold .dot{background:var(--gold)}
+  .delta{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
+  .up{color:var(--good)} .down{color:var(--bad)} .flat{color:var(--muted)}
+  .growthrow{display:flex;gap:18px;margin-top:12px;flex-wrap:wrap}
+  .growthrow .gi{display:flex;flex-direction:column;gap:2px}
+  .growthrow .gi .gl{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  .chart-box{position:relative;height:300px}
+  .chart-box.tall{height:340px}
+  .chart-box.sm{height:230px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--line)}
+  tbody td{color:var(--text);font-weight:600}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line2)}
+  tbody tr:hover{background:rgba(45,42,50,.03)}
+  td.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+  tr.total td{font-weight:700;border-top:1px solid var(--line2);border-bottom:none}
+  .pill{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+  .pill.adj{background:var(--adj-dim);color:var(--adj)}
+  .pill.l1{background:var(--l1-dim);color:var(--l1)}
+  .pill.l2{background:var(--l2-dim);color:var(--l2)}
+  .swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:middle}
+  .note{font-size:13px;color:var(--faint);margin-top:14px;line-height:1.5;border-top:1px dashed var(--line);padding-top:12px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+  .legend span{display:flex;align-items:center}
+  .full{grid-column:1/-1}
+  .footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.04em}
+  .sel{display:flex;gap:8px;flex-wrap:wrap}
+  .sel button{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.05em;color:var(--muted);
+    background:var(--panel);border:1px solid var(--line);padding:8px 16px;border-radius:8px;cursor:pointer;transition:.18s;font-weight:600}
+  .sel button:hover{color:var(--text);border-color:var(--line2)}
+  .sel button.active{color:#fff;background:var(--adj);border-color:var(--adj)}
+  .sel.strength button.active{background:var(--gold);border-color:var(--gold)}
+  .sel.state button{padding:7px 13px;font-size:11.5px}
+  .sel.state button.active{background:#3b6fb6;border-color:#3b6fb6}
+  .matrix tr.statehl td{background:rgba(59,111,182,.14)!important}
+  .matrix tr.statehl td:first-child{color:#3b6fb6;font-weight:700}
+  tbody tr.rowhl td{background:rgba(59,111,182,.10)}
+  tbody tr.rowsel td:first-child{color:#3b6fb6}
+  .ind-desc{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--faint);margin:2px 0 18px;letter-spacing:.03em}
+  .matrix{overflow-x:auto;margin:-4px -6px}
+  .matrix table{min-width:820px}
+  .matrix th,.matrix td{padding:7px 9px;font-size:12px}
+  .matrix td.heat{border-radius:3px;text-align:right;font-family:'IBM Plex Mono',monospace}
+  .matrix td.rowtot{font-weight:700}
+  .matrix .share{font-family:'IBM Plex Mono',monospace;color:var(--gold)}
+  .selrow{display:flex;gap:26px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+  .selrow .sl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="head-row">
+      <div>
+        <div class="eyebrow">PBS / RPBS Market Intelligence &nbsp;·&nbsp; Medicare Statistics Portal</div>
+        <h1>Tagrisso <em>Osimertinib</em> — by Indication</h1>
+      </div>
+      <div class="brand-logo"><img src="data:image/png;base64,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" alt="TAGRISSO® (osimertinib) logo"></div>
+    </div>
+    <p class="sub">EGFR-mutated NSCLC dispensing across three PBS indications — adjuvant (ADAURA), first-line metastatic, and second-line / T790M — split by 80&nbsp;mg and 40&nbsp;mg strength, by state and month. Figures are PBS + RPBS services combined. Manufacturer: AstraZeneca.</p>
+    <div class="meta">
+      <span><b>Period</b> &nbsp;May 2025 – Apr 2026 (12 months)</span>
+      <span><b>MAT</b> &nbsp;trailing-12 total</span>
+      <span><b>Source</b> &nbsp;Services Australia, Medicare Statistics (PBS Item Report)</span>
+      <span><b>Pulled</b> &nbsp;12 Jun 2026</span>
+      <span><b>Total Osimertinib MAT</b> &nbsp;<span id="hdrTot"></span> services</span>
+    </div>
+  </header>
+
+  <nav id="nav">
+    <button class="active" data-sec="national">National by Indication</button>
+    <button data-sec="statemonth">State × Month</button>
+    <button data-sec="strength">By Strength (80 vs 40 mg)</button>
+  </nav>
+
+  <!-- NATIONAL -->
+  <section id="national" class="active">
+    <div class="sec-head"><h2>National picture — each indication</h2>
+      <span class="tag">MAT · rQTR growth · monthly growth</span></div>
+    <div class="grid g3" id="indCards" style="margin-bottom:16px"></div>
+    <div class="grid g21" style="margin-bottom:16px">
+      <div class="card pad">
+        <div class="card-title">Monthly national services by indication
+          <span class="legend">
+            <span><i class="swatch" style="background:var(--adj)"></i>Adjuvant</span>
+            <span><i class="swatch" style="background:var(--l1)"></i>1st-line</span>
+            <span><i class="swatch" style="background:var(--l2)"></i>2nd-line</span></span></div>
+        <div class="chart-box tall"><canvas id="natStacked"></canvas></div>
+      </div>
+      <div class="card pad">
+        <div class="card-title">MAT mix by indication</div>
+        <div class="chart-box tall"><canvas id="indDonut"></canvas></div>
+      </div>
+    </div>
+    <div class="card pad">
+      <div class="card-title">MAT &amp; growth by indication and strength</div>
+      <table><thead><tr><th>Indication</th><th>PBS items (80 / 40 mg)</th><th>MAT</th><th>Share</th><th>Avg/mo</th><th>MoM</th><th>rQTR</th></tr></thead>
+      <tbody id="matTable"></tbody></table>
+      <div class="note">MAT = moving annual total (trailing 12 months). MoM = Apr-26 vs Mar-26. rQTR = rolling quarter Feb–Apr 26 vs Nov 25–Jan 26. Year-on-year MAT growth needs the prior 12 months (May 24–Apr 25) — available on request.</div>
+    </div>
+  </section>
+
+  <!-- STATE x MONTH -->
+  <section id="statemonth">
+    <div class="sec-head"><h2>State × Month — last 12 months</h2>
+      <span class="tag">choose indication &amp; strength</span></div>
+    <div class="selrow">
+      <div><div class="sl">Indication</div><div class="sel" id="smInd"></div></div>
+      <div><div class="sl">Strength</div><div class="sel strength" id="smStr">
+        <button class="active" data-str="combined">Combined</button>
+        <button data-str="s80">80 mg</button>
+        <button data-str="s40">40 mg</button></div></div>
+    </div>
+    <div class="selrow"><div style="flex:1"><div class="sl">State</div><div class="sel state" id="smSt"></div></div></div>
+    <div class="ind-desc" id="smDesc"></div>
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card kpi"><span class="label">MAT — 12M services</span><span class="val" id="smMat">—</span><span class="unit" id="smMatU"></span></div>
+      <div class="card kpi"><span class="label">rQTR growth</span><span class="val sm" id="smRq">—</span><span class="unit">Feb–Apr vs Nov–Jan</span></div>
+      <div class="card kpi"><span class="label">MoM growth</span><span class="val sm" id="smMom">—</span><span class="unit">Apr-26 vs Mar-26</span></div>
+      <div class="card kpi"><span class="label">Avg / month</span><span class="val sm" id="smAvg">—</span><span class="unit">services / month</span></div>
+    </div>
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="card-title" id="smChartTitle">Monthly dispensings by state</div>
+      <div class="chart-box tall"><canvas id="smStacked"></canvas></div>
+    </div>
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="card-title">Per-state numbers &amp; growth <span class="mono" style="font-size:10px;color:var(--faint)">current indication &amp; strength · click a row's state above to focus</span></div>
+      <table><thead><tr><th>State</th><th>12M MAT</th><th>Share</th><th>Avg/mo</th><th>Latest (Apr-26)</th><th>MoM</th><th>rQTR</th></tr></thead>
+      <tbody id="smStateTable"></tbody></table>
+    </div>
+    <div class="card pad">
+      <div class="card-title">State × month matrix <span class="mono" style="font-size:10px;color:var(--faint)">cell shade ∝ services · selected state row highlighted</span></div>
+      <div class="matrix"><table id="smMatrix"></table></div>
+    </div>
+  </section>
+
+  <!-- BY STRENGTH -->
+  <section id="strength">
+    <div class="sec-head"><h2>80 mg vs 40 mg — by indication</h2>
+      <span class="tag">standard dose vs dose-reduced pair</span></div>
+    <div class="grid g3" id="strCards" style="margin-bottom:16px"></div>
+    <div class="grid g2">
+      <div class="card pad">
+        <div class="card-title">MAT by strength &amp; indication
+          <span class="legend"><span><i class="swatch" style="background:#f0ab00"></i>80 mg</span><span><i class="swatch" style="background:#8a8694"></i>40 mg</span></span></div>
+        <div class="chart-box tall"><canvas id="strBar"></canvas></div>
+      </div>
+      <div class="card pad">
+        <div class="card-title">40 mg share of indication MAT</div>
+        <div class="chart-box tall"><canvas id="strShare"></canvas></div>
+      </div>
+    </div>
+    <div class="note" style="max-width:900px">The 80&nbsp;mg item is the standard daily dose for every osimertinib indication; the 40&nbsp;mg item is the dose-reduced pair used for toxicity management within the same listing — so a higher 40&nbsp;mg share indicates more dose reductions rather than a distinct patient group.</div>
+  </section>
+
+  <div class="footer"><img class="footer-logo" src="data:image/png;base64,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" alt="TAGRISSO logo">Tagrisso (Osimertinib) PBS Analysis · Source: Services Australia, Medicare Statistics (PBS Item Report), PBS + RPBS combined · MAT = trailing-12 total · rQTR = rolling quarter · MoM = month-on-month · Pulled 12 Jun 2026</div>
+</div>
+
+<script>
+const D={"months":["May 25","Jun 25","Jul 25","Aug 25","Sep 25","Oct 25","Nov 25","Dec 25","Jan 26","Feb 26","Mar 26","Apr 26"],"states":["NSW","VIC","QLD","SA","WA","TAS","ACT","NT"],"indications":[{"name":"Adjuvant (ADAURA)","key":"adj","color":"adj","desc":"Resected EGFR+ NSCLC, post-operative (Stage IB/II/IIIA) \u00b7 ADAURA","code80":"14168Q","code40":"14162J","combined":{"monthly":[240,218,221,257,246,243,241,314,242,309,268,315],"byState":[[106,58,43,12,18,1,2,0],[76,63,46,17,12,1,3,0],[84,65,39,18,12,1,2,0],[106,67,47,12,17,0,8,0],[99,72,47,13,12,0,2,1],[101,72,39,13,15,2,1,0],[83,64,42,18,29,2,3,0],[140,88,52,17,7,2,6,2],[68,77,49,14,29,1,3,1],[111,73,57,23,38,3,3,1],[106,64,56,25,10,3,3,1],[123,72,56,29,26,1,6,2]],"stateTot":[1203,835,573,211,225,17,42,8],"MAT":3114,"avg":259.5,"mom":0.17537313432835822,"rqtr":0.1191969887076536},"s80":{"monthly":[201,185,196,220,219,199,207,262,210,264,215,256],"byState":[[89,49,34,12,15,1,1,0],[65,56,37,15,9,1,2,0],[77,60,32,14,10,1,2,0],[91,58,38,10,15,0,8,0],[89,68,37,12,10,0,2,1],[87,53,31,12,13,2,1,0],[71,53,34,17,27,2,3,0],[113,78,41,13,7,2,6,2],[59,66,39,13,28,1,3,1],[95,64,45,16,37,3,3,1],[83,55,43,20,7,3,3,1],[99,60,41,23,24,1,6,2]],"stateTot":[1018,720,452,177,202,17,40,8],"MAT":2634,"avg":219.5,"mom":0.19069767441860463,"rqtr":0.08247422680412364},"s40":{"monthly":[39,33,25,37,27,44,34,52,32,45,53,59],"byState":[[17,9,9,0,3,0,1,0],[11,7,9,2,3,0,1,0],[7,5,7,4,2,0,0,0],[15,9,9,2,2,0,0,0],[10,4,10,1,2,0,0,0],[14,19,8,1,2,0,0,0],[12,11,8,1,2,0,0,0],[27,10,11,4,0,0,0,0],[9,11,10,1,1,0,0,0],[16,9,12,7,1,0,0,0],[23,9,13,5,3,0,0,0],[24,12,15,6,2,0,0,0]],"stateTot":[185,115,121,34,23,0,2,0],"MAT":480,"avg":40.0,"mom":0.1132075471698113,"rqtr":0.3305084745762712}},{"name":"1st-line metastatic","key":"l1","color":"l1","desc":"First-line EGFR+ metastatic NSCLC (Stage IIIB/IV) \u00b7 FLAURA","code80":"12232T","code40":"12233W","combined":{"monthly":[1825,1691,1624,1734,1530,1864,1657,1934,1608,1743,1633,1649],"byState":[[721,433,312,104,215,13,18,9],[643,420,314,100,154,24,28,8],[608,463,242,98,170,20,17,6],[699,409,269,77,231,21,20,8],[658,332,264,101,137,18,14,6],[743,485,278,105,204,20,25,4],[637,379,282,107,193,21,26,12],[836,461,299,89,179,26,31,13],[602,447,250,84,183,20,21,1],[711,385,304,89,185,23,26,20],[669,403,275,80,152,16,27,11],[667,365,297,86,182,25,21,6]],"stateTot":[8194,4982,3386,1120,2185,247,274,104],"MAT":20492,"avg":1707.6666666666667,"mom":0.009797917942437229,"rqtr":-0.033467974610501994},"s80":{"monthly":[1620,1469,1408,1511,1306,1650,1424,1682,1402,1532,1385,1400],"byState":[[633,396,271,91,194,13,16,6],[554,384,254,84,140,22,24,7],[526,413,192,87,152,20,14,4],[610,363,226,67,203,17,18,7],[551,300,211,85,127,15,13,4],[651,446,236,90,186,18,19,4],[541,333,229,90,175,21,25,10],[721,424,239,79,160,23,25,11],[517,406,216,68,159,18,17,1],[618,354,259,79,159,22,21,20],[564,363,221,66,131,15,19,6],[566,321,240,74,157,21,16,5]],"stateTot":[7052,4503,2794,960,1943,225,227,85],"MAT":17789,"avg":1482.4166666666667,"mom":0.010830324909747224,"rqtr":-0.042369121561668166},"s40":{"monthly":[205,222,216,223,224,214,233,252,206,211,248,249],"byState":[[88,37,41,13,21,0,2,3],[89,36,60,16,14,2,4,1],[82,50,50,11,18,0,3,2],[89,46,43,10,28,4,2,1],[107,32,53,16,10,3,1,2],[92,39,42,15,18,2,6,0],[96,46,53,17,18,0,1,2],[115,37,60,10,19,3,6,2],[85,41,34,16,24,2,4,0],[93,31,45,10,26,1,5,0],[105,40,54,14,21,1,8,5],[101,44,57,12,25,4,5,1]],"stateTot":[1142,479,592,160,242,22,47,19],"MAT":2703,"avg":225.25,"mom":0.0040322580645162365,"rqtr":0.02460202604920414}},{"name":"2nd-line / T790M","key":"l2","color":"l2","desc":"Second-line after prior EGFR-TKI / T790M (Stage IIIB/IV) \u00b7 AURA","code80":"11622Q","code40":"11620N","combined":{"monthly":[302,306,246,280,233,316,244,240,227,235,201,232],"byState":[[106,74,75,13,28,1,3,2],[90,101,61,27,17,2,3,5],[79,78,45,6,28,2,5,3],[91,73,56,16,35,3,3,3],[89,52,54,12,18,3,4,1],[101,84,61,24,35,2,7,2],[93,51,53,11,28,3,3,2],[85,53,62,15,18,1,2,4],[78,45,61,12,25,4,1,1],[85,52,46,20,22,3,1,6],[83,38,49,9,15,5,1,1],[90,38,59,17,23,2,1,2]],"stateTot":[1070,739,682,182,292,31,34,32],"MAT":3062,"avg":255.16666666666666,"mom":0.1542288557213931,"rqtr":-0.06047819971870605},"s80":{"monthly":[231,237,182,212,172,238,182,181,156,188,152,165],"byState":[[84,61,46,11,24,1,2,2],[71,92,34,20,13,2,0,5],[59,59,26,4,26,2,3,3],[65,60,36,13,31,3,1,3],[68,44,32,7,15,3,2,1],[75,70,40,15,30,2,5,1],[68,43,35,5,25,3,1,2],[68,45,35,10,18,1,1,3],[50,39,39,3,20,4,0,1],[70,43,33,15,20,2,0,5],[64,32,34,6,12,3,0,1],[67,30,33,14,20,0,0,1]],"stateTot":[809,618,423,123,254,26,15,28],"MAT":2296,"avg":191.33333333333334,"mom":0.08552631578947367,"rqtr":-0.026974951830443183},"s40":{"monthly":[71,69,64,68,61,78,62,59,71,47,49,67],"byState":[[22,13,29,2,4,0,1,0],[19,9,27,7,4,0,3,0],[20,19,19,2,2,0,2,0],[26,13,20,3,4,0,2,0],[21,8,22,5,3,0,2,0],[26,14,21,9,5,0,2,1],[25,8,18,6,3,0,2,0],[17,8,27,5,0,0,1,1],[28,6,22,9,5,0,1,0],[15,9,13,5,2,1,1,1],[19,6,15,3,3,2,1,0],[23,8,26,3,3,2,1,1]],"stateTot":[261,121,259,59,38,5,19,4],"MAT":766,"avg":63.833333333333336,"mom":0.36734693877551017,"rqtr":-0.15104166666666663}}],"total":{"monthly":[2367,2215,2091,2271,2009,2423,2142,2488,2077,2287,2102,2196],"MAT":26668,"avg":2222.3333333333335,"mom":0.044719314938154175,"rqtr":-0.018189950797674048,"stateTot":[10467,6556,4641,1513,2702,295,350,144]}};
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const pct=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%';
+const cls=x=>x>0.0005?'up':(x<-0.0005?'down':'flat');
+const COL={adj:'#830051',l1:'#f0ab00',l2:'#2494a6',gold:'#f0ab00',faint:'#8a8694'};
+const GA={font:{family:"'IBM Plex Mono', monospace",size:11},color:'#7d7684'};
+Chart.defaults.color='#7d7684';
+Chart.defaults.font.family="'IBM Plex Mono', monospace";
+const gridc='rgba(45,42,50,.06)';
+
+document.getElementById('hdrTot').textContent=fmt(D.total.MAT);
+
+/* nav */
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(b.dataset.sec).classList.add('active');
+});
+
+/* ---- NATIONAL: indication cards ---- */
+const ic=document.getElementById('indCards');
+D.indications.forEach(ind=>{
+  const c=ind.combined;
+  ic.insertAdjacentHTML('beforeend',`
+   <div class="card kpi c-${ind.color}"><span class="dot"></span>
+     <span class="label">${ind.name}</span>
+     <span class="val">${fmt(c.MAT)}</span>
+     <span class="unit">MAT · ${fmt(c.avg)}/mo · items ${ind.code80} / ${ind.code40}</span>
+     <div class="growthrow">
+       <div class="gi"><span class="gl">MoM</span><span class="delta ${cls(c.mom)}">${pct(c.mom)}</span></div>
+       <div class="gi"><span class="gl">rQTR</span><span class="delta ${cls(c.rqtr)}">${pct(c.rqtr)}</span></div>
+       <div class="gi"><span class="gl">Share</span><span class="delta flat">${(c.MAT/D.total.MAT*100).toFixed(1)}%</span></div>
+     </div></div>`);
+});
+
+/* national stacked monthly */
+new Chart(document.getElementById('natStacked'),{type:'bar',
+ data:{labels:D.months,datasets:D.indications.map(ind=>({
+   label:ind.name,data:ind.combined.monthly,backgroundColor:COL[ind.color],borderRadius:3,
+ }))},
+ options:{responsive:true,maintainAspectRatio:false,
+   scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:gridc}}},
+   plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}}}});
+
+/* donut */
+new Chart(document.getElementById('indDonut'),{type:'doughnut',
+ data:{labels:D.indications.map(i=>i.name),
+   datasets:[{data:D.indications.map(i=>i.combined.MAT),
+     backgroundColor:D.indications.map(i=>COL[i.color]),borderColor:'#ffffff',borderWidth:3}]},
+ options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+   plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}},
+     tooltip:{callbacks:{label:c=>c.label+': '+fmt(c.parsed)+' ('+(c.parsed/D.total.MAT*100).toFixed(1)+'%)'}}}}});
+
+/* MAT table */
+const mt=document.getElementById('matTable');
+D.indications.forEach(ind=>{
+  const c=ind.combined;
+  mt.insertAdjacentHTML('beforeend',`<tr>
+    <td><span class="pill ${ind.color}">${ind.name}</span></td>
+    <td class="num">${ind.code80} / ${ind.code40}</td>
+    <td class="num">${fmt(c.MAT)}</td>
+    <td class="num">${(c.MAT/D.total.MAT*100).toFixed(1)}%</td>
+    <td class="num">${fmt(c.avg)}</td>
+    <td class="num ${cls(c.mom)}">${pct(c.mom)}</td>
+    <td class="num ${cls(c.rqtr)}">${pct(c.rqtr)}</td></tr>`);
+});
+mt.insertAdjacentHTML('beforeend',`<tr class="total">
+  <td>Total osimertinib</td><td class="num">all 6 items</td>
+  <td class="num">${fmt(D.total.MAT)}</td><td class="num">100%</td>
+  <td class="num">${fmt(D.total.avg)}</td>
+  <td class="num ${cls(D.total.mom)}">${pct(D.total.mom)}</td>
+  <td class="num ${cls(D.total.rqtr)}">${pct(D.total.rqtr)}</td></tr>`);
+
+/* ---- STATE x MONTH ---- */
+const smInd=document.getElementById('smInd');
+D.indications.forEach((ind,i)=>{
+  smInd.insertAdjacentHTML('beforeend',`<button data-i="${i}" class="${i===0?'active':''}">${ind.name}</button>`);
+});
+let smI=0, smS='combined', smSt='all';
+let smChart=null;
+function smSeries(){return D.indications[smI][smS];}
+function strLabel(){return smS==='combined'?'Combined (80+40 mg)':(smS==='s80'?'80 mg':'40 mg');}
+function mmetrics(arr){const MAT=arr.reduce((a,b)=>a+b,0);
+  const mom=arr[10]?arr[11]/arr[10]-1:0;
+  const pr=arr.slice(6,9).reduce((a,b)=>a+b,0), rc=arr.slice(9,12).reduce((a,b)=>a+b,0);
+  return {MAT,avg:MAT/12,mom,rqtr:pr?rc/pr-1:0,latest:arr[11]};}
+/* state selector buttons */
+const smStEl=document.getElementById('smSt');
+smStEl.insertAdjacentHTML('beforeend',`<button data-s="all" class="active">All states</button>`);
+D.states.forEach((st,si)=>smStEl.insertAdjacentHTML('beforeend',`<button data-s="${si}">${st}</button>`));
+
+function renderSM(){
+  const ind=D.indications[smI], ser=smSeries();
+  const rgb=ind.color==='adj'?[131,0,81]:ind.color==='l1'?[240,171,0]:[36,148,166];
+  const focused = smSt!=='all';
+  const si = focused ? +smSt : -1;
+  const stMonthly = focused ? ser.byState.map(m=>m[si]) : ser.monthly;
+  const kp = focused ? mmetrics(stMonthly) : {MAT:ser.MAT,avg:ser.avg,mom:ser.mom,rqtr:ser.rqtr};
+  const scopeName = focused ? D.states[si] : 'all states';
+  document.getElementById('smDesc').textContent=ind.desc+'  ·  '+strLabel()
+    +'  ·  PBS items '+(smS==='s40'?ind.code40:(smS==='s80'?ind.code80:ind.code80+' + '+ind.code40))
+    +'  ·  '+scopeName.toUpperCase();
+  document.getElementById('smMat').textContent=fmt(kp.MAT);
+  document.getElementById('smMat').style.color=COL[ind.color];
+  document.getElementById('smMatU').textContent=(focused?scopeName+' · ':'')+fmt(kp.avg)+'/mo avg';
+  const rq=document.getElementById('smRq'); rq.textContent=pct(kp.rqtr); rq.className='val sm '+cls(kp.rqtr);
+  const mm=document.getElementById('smMom'); mm.textContent=pct(kp.mom); mm.className='val sm '+cls(kp.mom);
+  document.getElementById('smAvg').textContent=fmt(kp.avg);
+  document.getElementById('smChartTitle').textContent='Monthly dispensings — '+ind.name+' · '+strLabel()+' · '+scopeName;
+  // chart: stacked-by-state when All; single series when a state is focused
+  const palette=['#830051','#f0ab00','#2494a6','#7c5cbf','#3b6fb6','#1a7f37','#d95d9a','#8a8694'];
+  let cfg;
+  if(focused){
+    cfg={type:'bar',data:{labels:D.months,datasets:[{label:D.states[si],data:stMonthly,
+        backgroundColor:`rgba(${rgb[0]},${rgb[1]},${rgb[2]},.85)`,borderRadius:3}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{x:{grid:{display:false}},y:{grid:{color:gridc}}},
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>D.states[si]+': '+fmt(c.parsed.y)}}}}};
+  }else{
+    const ds=D.states.map((st,k)=>({label:st,data:ser.byState.map(m=>m[k]),backgroundColor:palette[k],borderRadius:2}));
+    cfg={type:'bar',data:{labels:D.months,datasets:ds},
+      options:{responsive:true,maintainAspectRatio:false,
+        scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:gridc}}},
+        plugins:{legend:{position:'bottom',labels:{boxWidth:9,font:{size:10}}},
+          tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}}}};
+  }
+  if(smChart)smChart.destroy();
+  smChart=new Chart(document.getElementById('smStacked'),cfg);
+  // per-state growth table
+  const mx=ser.byState;
+  const colTot=D.states.map((_,k)=>mx.reduce((a,m)=>a+m[k],0));
+  let st='';
+  D.states.forEach((s,k)=>{
+    const a=mx.map(m=>m[k]); const me=mmetrics(a);
+    st+=`<tr class="${focused&&k===si?'rowhl rowsel':''}" data-srow="${k}" style="cursor:pointer">
+      <td>${s}</td><td class="num">${fmt(me.MAT)}</td>
+      <td class="num share" style="color:var(--gold)">${(me.MAT/ser.MAT*100).toFixed(1)}%</td>
+      <td class="num">${fmt(me.avg)}</td><td class="num">${fmt(me.latest)}</td>
+      <td class="num ${cls(me.mom)}">${pct(me.mom)}</td>
+      <td class="num ${cls(me.rqtr)}">${pct(me.rqtr)}</td></tr>`;
+  });
+  st+=`<tr class="total"><td>National</td><td class="num">${fmt(ser.MAT)}</td><td class="num">100%</td>
+    <td class="num">${fmt(ser.avg)}</td><td class="num">${fmt(ser.monthly[11])}</td>
+    <td class="num ${cls(ser.mom)}">${pct(ser.mom)}</td><td class="num ${cls(ser.rqtr)}">${pct(ser.rqtr)}</td></tr>`;
+  document.getElementById('smStateTable').innerHTML=st;
+  document.querySelectorAll('#smStateTable tr[data-srow]').forEach(r=>r.onclick=()=>{
+    smSt=r.dataset.srow; syncStateBtns(); renderSM();
+    document.getElementById('smStacked').scrollIntoView({behavior:'smooth',block:'center'});});
+  // matrix with highlighted state row
+  const maxCell=Math.max(...mx.flat(),1);
+  let h='<thead><tr><th>State</th>'+D.months.map(m=>`<th>${m}</th>`).join('')+'<th>12M</th><th>Share</th></tr></thead><tbody>';
+  D.states.forEach((s,k)=>{
+    h+=`<tr class="${focused&&k===si?'statehl':''}"><td>${s}</td>`;
+    for(let m=0;m<12;m++){const v=mx[m][k];const al=(v/maxCell*0.5).toFixed(3);
+      h+=`<td class="heat" style="background:rgba(${rgb[0]},${rgb[1]},${rgb[2]},${al})">${v||'·'}</td>`;}
+    h+=`<td class="num rowtot">${fmt(colTot[k])}</td><td class="share">${(colTot[k]/ser.MAT*100).toFixed(1)}%</td></tr>`;
+  });
+  h+=`<tr class="total"><td>National</td>`+ser.monthly.map(v=>`<td class="num">${fmt(v)}</td>`).join('')
+    +`<td class="num">${fmt(ser.MAT)}</td><td class="share">100%</td></tr></tbody>`;
+  document.getElementById('smMatrix').innerHTML=h;
+}
+function syncStateBtns(){document.querySelectorAll('#smSt button').forEach(x=>
+  x.classList.toggle('active', x.dataset.s===smSt));}
+smInd.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  smInd.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  smI=+b.dataset.i; renderSM();});
+document.querySelectorAll('#smStr button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#smStr button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  smS=b.dataset.str; renderSM();});
+smStEl.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  smSt=b.dataset.s; syncStateBtns(); renderSM();});
+renderSM();
+
+/* ---- BY STRENGTH ---- */
+const sc=document.getElementById('strCards');
+D.indications.forEach(ind=>{
+  const sh=ind.s40.MAT/ind.combined.MAT*100;
+  sc.insertAdjacentHTML('beforeend',`
+   <div class="card kpi c-${ind.color}"><span class="dot"></span>
+     <span class="label">${ind.name}</span>
+     <span class="val sm">${fmt(ind.s80.MAT)} <span style="font-size:15px;color:var(--faint)">/ ${fmt(ind.s40.MAT)}</span></span>
+     <span class="unit">80 mg / 40 mg MAT · 40 mg = ${sh.toFixed(1)}% of indication</span></div>`);
+});
+new Chart(document.getElementById('strBar'),{type:'bar',
+ data:{labels:D.indications.map(i=>i.name),
+   datasets:[
+     {label:'80 mg',data:D.indications.map(i=>i.s80.MAT),backgroundColor:COL.gold,borderRadius:3},
+     {label:'40 mg',data:D.indications.map(i=>i.s40.MAT),backgroundColor:COL.faint,borderRadius:3}]},
+ options:{responsive:true,maintainAspectRatio:false,
+   scales:{x:{grid:{display:false}},y:{grid:{color:gridc}}},
+   plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}}}});
+new Chart(document.getElementById('strShare'),{type:'bar',
+ data:{labels:D.indications.map(i=>i.name),
+   datasets:[{data:D.indications.map(i=>i.s40.MAT/i.combined.MAT*100),
+     backgroundColor:D.indications.map(i=>COL[i.color]),borderRadius:4}]},
+ options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+   scales:{x:{grid:{color:gridc},ticks:{callback:v=>v+'%'},max:25},y:{grid:{display:false}}},
+   plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'40 mg share: '+c.parsed.x.toFixed(1)+'%'}}}}});
+</script>
+</body>
+</html>
